@@ -1,0 +1,79 @@
+/* --- CONTAINER USER MENU --- */
+.discord-user-menu {
+    position: relative;
+    width: fit-content;
+    user-select: none;
+}
+
+/* --- USER TAB (username + freccia) --- */
+.discord-user-menu .user-tab {
+    background: transparent;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #2f3136;
+    transition: background 0.15s ease;
+}
+
+/* Hover stile Discord */
+.discord-user-menu .user-tab:hover {
+    background: #e3e5e8;
+}
+
+/* Freccia */
+.discord-user-menu .user-tab .arrow {
+    font-size: 13px;
+    transition: transform 0.2s ease;
+}
+
+/* Freccia girata quando aperto */
+.discord-user-menu.open .user-tab .arrow {
+    transform: rotate(180deg);
+}
+
+/* --- MENU A TENDINA (dropdown) --- */
+.discord-user-menu .user-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #f4f5f7;
+    padding: 6px 0;
+    border-radius: 6px;
+    margin-top: 4px;
+    box-shadow: 0 2px 7px rgba(0,0,0,0.15);
+    display: none;
+    min-width: 160px;
+    z-index: 50;
+}
+
+/* Dropdown aperto */
+.discord-user-menu.open .user-dropdown {
+    display: block;
+}
+
+/* Voce del menu */
+.discord-user-menu .dropdown-item {
+    padding: 8px 14px;
+    font-size: 14px;
+    color: #2f3136;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+/* Hover stile Discord */
+.discord-user-menu .dropdown-item:hover {
+    background: #e3e5e8;
+}
+
+.no-border {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.container, .row, .col {
+    border: none !important;
+}

@@ -1,0 +1,7 @@
+[
+    { "id": "completed", "label": "Completato", "color": "success" },
+    { "id": "pending", "label": "In attesa", "color": "warning" },
+    { "id": "processing", "label": "In lavorazione", "color": "primary" },
+    { "id": "canceled", "label": "Annullato", "color": "danger" },
+    { "id": "refunded", "label": "Rimborsato", "color": "info" }
+]

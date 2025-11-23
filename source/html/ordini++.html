@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sku manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+    <link rel="stylesheet" href="http://127.0.0.1:5500/source/css/offcanvas.css">
+    <link rel="stylesheet" href="http://127.0.0.1:5500/source/css/main.css">
+
+    <script defer src="http://127.0.0.1:5500/source/js/main.js"></script>
+    <script>
+        async function loadStatuses() {
+            const res = await fetch("http://127.0.0.1:5500/source/src/status.json");
+            const statuses = await res.json();
+
+            document.querySelectorAll(".status-btn").forEach(button => {
+                const menu = button.parentElement.querySelector(".status-menu");
+
+                // Popola il menu a tendina
+                statuses.forEach(status => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                <a class="dropdown-item" data-status="${status.id}" href="#">
+                    <span class="badge bg-${status.color}">${status.label}</span>
+                </a>`;
+                    menu.appendChild(li);
+                });
+
+                // Quando clicchi un item → aggiorni il badge
+                menu.addEventListener("click", e => {
+                    const a = e.target.closest("a");
+                    if (!a) return;
+
+                    const id = a.dataset.status;
+                    const info = statuses.find(s => s.id === id);
+
+                    // Aggiorna il bottone
+                    button.innerHTML =
+                        `<span class="badge bg-${info.color}">${info.label}</span>`;
+
+                    button.dataset.currentStatus = id;
+                });
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", loadStatuses);
+    </script>
+
+</head>
+
+<body>
+    <!-- sidebar -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvas" aria-labelledby="offcanvasLabel">
+        <div class="offcanvas-header">
+            <div class="text">Pannello v0.0.1</div>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="accordion discord-accordion" id="menuAccordion">
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#item2">
+                            Ordini
+                        </button>
+                    </h2>
+                    <div id="item2" class="accordion-collapse collapse">
+                        <div class="accordion-body">
+                            <a href="" style="text-decoration: None; color: black">Ordini++</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#item1">
+                            Sku
+                        </button>
+                    </h2>
+                    <div id="item1" class="accordion-collapse collapse">
+                        <div class="accordion-body">
+                            <a href="" style="text-decoration: None; color: black">Sku manager</a>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+    <!-- sidebar -->
+
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="btn" data-bs-toggle="offcanvas" href="#offcanvas" role="button" aria-controls="offcanvas">
+                X
+            </a>
+            <img src="http://127.0.0.1:5500/source/src/logo.png" alt="Logo" width="30" height="24"
+                class="d-inline-block align-text-top"> adm panel
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                </ul>
+                <div class="user-menu discord-user-menu">
+                    <div class="user-tab" id="userTab">
+                        <span class="username">User123</span>
+                        <span class="arrow">▾</span>
+                    </div>
+
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-item">Impostazioni</div>
+                        <div class="dropdown-item">Profilo</div>
+                        <div class="dropdown-item">Esci</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row g-3">
+
+            <!-- CARD 1 -->
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card text-white p-3 d-flex align-items-center"
+                    style="background:#0d6efd; border-radius:10px;">
+                    <i class="bi bi-person-fill fs-1 me-3"></i>
+                    <div>
+                        <div class="fs-4 fw-bold">10,145</div>
+                        <div class="small opacity-75">Ordini totali</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 2 -->
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card text-white p-3 d-flex align-items-center"
+                    style="background:#fd7e14; border-radius:10px;">
+                    <i class="bi bi-hand-thumbs-up-fill fs-1 me-3"></i>
+                    <div>
+                        <div class="fs-4 fw-bold">4,410</div>
+                        <div class="small opacity-75">In attesa di prodotti</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 3 -->
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card text-white p-3 d-flex align-items-center"
+                    style="background:#198754; border-radius:10px;">
+                    <i class="bi bi-bar-chart-fill fs-1 me-3"></i>
+                    <div>
+                        <div class="fs-4 fw-bold">80%</div>
+                        <div class="small opacity-75">da spedire</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 4 -->
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card text-dark p-3 d-flex align-items-center"
+                    style="background:#d0d7e3; border-radius:10px;">
+                    <i class="bi bi-briefcase-fill fs-1 me-3"></i>
+                    <div>
+                        <div class="fs-4 fw-bold">0</div>
+                        <div class="small opacity-75">problemi da risolvere</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="container mt-5">
+
+            <!-- SEARCH BAR + FILTERS -->
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-body-secondary"><i class="bi bi-search"></i></span>
+                        <input type="text" id="orderSearch" class="form-control" placeholder="Cerca ordine...">
+                    </div>
+                </div>
+
+                <div class="col-md-6 d-flex justify-content-end gap-2">
+                    <select class="form-select w-auto">
+                        <option>Filtra per...</option>
+                        <option>Id ordine</option>
+                        <option>Nome</option>
+                        <option>Piattaforma di acquisto</option>
+                        <option>Note</option>
+                        <option>Tag Telegram</option>
+                        <option>Creato</option>
+                        <option>Ultima modifica</option>
+                        <option>Status</option>
+                    </select>
+
+                    <button class="btn btn-primary">Applica</button>
+                </div>
+            </div>
+
+            <!-- TABLE WRAPPER -->
+            <div class="table-responsive shadow rounded", style="overflow: visible  !important;">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Piattaforma</th>
+                            <th>Note</th>
+                            <th>Tag Telegram</th>
+                            <th>Creato</th>
+                            <th>Ultima Modifica</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderTable">
+
+                        <!-- ESEMPIO ORDINE -->
+                        <tr>
+                            <td>#1023</td>
+                            <td>Mario Rossi</td>
+                            <td>Shopify</td>
+                            <td>Cliente VIP </td>
+                            <td>@mariorossi</td>
+                            <td>2024-01-03</td>
+                            <td>2024-01-07</td>
+                            <td>
+                                <div class="dropdown position-relative">
+                                    <button class="btn btn-sm dropdown-toggle status-btn" type="button"
+                                        data-bs-toggle="dropdown" data-current-status="pending">
+                                        <span class="badge bg-warning text-dark">In attesa</span>
+                                    </button>
+
+                                    <ul class="dropdown-menu status-menu"></ul>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>#1024</td>
+                            <td>Alessia Meri</td>
+                            <td>Etsy</td>
+                            <td>-</td>
+                            <td>@alemerii</td>
+                            <td>2024-01-08</td>
+                            <td>2024-01-08</td>
+                            <td>
+                                <span class="badge bg-warning text-dark">In attesa</span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>#1025</td>
+                            <td>Giovanni B.</td>
+                            <td>Telegram Bot</td>
+                            <td>Chiede sconto</td>
+                            <td>@gio_bb</td>
+                            <td>2024-01-11</td>
+                            <td>2024-01-12</td>
+                            <td>
+                                <span class="badge bg-danger">Annullato</span>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+</body>
+
+</html>

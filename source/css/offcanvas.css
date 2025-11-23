@@ -1,0 +1,52 @@
+.discord-accordion .accordion-item {
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 6px;
+}
+
+.discord-accordion .accordion-button {
+    background: transparent !important;
+    color: #2f3136;
+    font-weight: 600;
+    padding: 10px 14px;
+    border-radius: 6px;
+    box-shadow: none !important;
+    border: none !important;
+    transition: background 0.15s ease, color 0.2s ease;
+    font-size: 14px;
+}
+
+.discord-accordion .accordion-button:hover {
+    background: #e3e5e8 !important;
+    color: #1f2124;
+}
+
+.discord-accordion .accordion-button:not(.collapsed) {
+    background: transparent !important;
+    color: #1f2124;
+}
+
+.discord-accordion .accordion-button:focus {
+    box-shadow: none !important;
+}
+
+.discord-accordion .accordion-button::after {
+    background-image: none !important;
+    content: "▸";
+    font-size: 14px;
+    transform: rotate(0deg);
+    transition: transform 0.2s ease;
+}
+
+.discord-accordion .accordion-button:not(.collapsed)::after {
+    transform: rotate(90deg);
+}
+
+.discord-accordion .accordion-body {
+    background: transparent;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: #2f3136;
+    border: none;
+}
