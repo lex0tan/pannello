@@ -11,6 +11,12 @@
     <link rel="stylesheet" href="http://127.0.0.1:5500/source/css/main.css">
 
     <script defer src="http://127.0.0.1:5500/source/js/main.js"></script>
+    <style>
+        .accordion-body a {
+            display: block;
+            margin-bottom: 6px;
+        }
+    </style>
 </head>
 
 <body>
@@ -25,30 +31,48 @@
 
                 <div class="accordion-item">
                     <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#item2">
+                        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#item1">
                             Ordini
                         </button>
                     </h2>
-                    <div id="item2" class="accordion-collapse collapse">
+                    <div id="item1" class="accordion-collapse collapse">
                         <div class="accordion-body">
                             <a href="ordini++.html" style="text-decoration: None; color: black">Ordini++</a>
+                            <a href="buoniSconto.html" style="text-decoration: None; color: black">Buoni Sconto</a>
                         </div>
                     </div>
                 </div>
 
                 <div class="accordion-item">
                     <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#item1">
-                            Sku
+                        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#item2">
+                            Catalogo
                         </button>
                     </h2>
-                    <div id="item1" class="accordion-collapse collapse">
+                    <div id="item2" class="accordion-collapse collapse">
                         <div class="accordion-body">
                             <a href="" style="text-decoration: None; color: black">Sku manager</a>
+                            <a href="" style="text-decoration: None; color: black">prodotti</a>
+                            <a href="" style="text-decoration: None; color: black">Promozioni</a>
+                            <a href="" style="text-decoration: None; color: black">product editor</a>
                         </div>
                     </div>
                 </div>
 
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#item3">
+                            Clienti
+                        </button>
+                    </h2>
+                    <div id="item3" class="accordion-collapse collapse">
+                        <div class="accordion-body">
+                            <a href="" style="text-decoration: None; color: black">Clienti</a>
+                            <a href="" style="text-decoration: None; color: black">Mailing list</a>
+                        </div>
+                    </div>
+                </div>
 
             </div>
         </div>
@@ -87,6 +111,7 @@
         </div>
     </nav>
 
+    <!-- stats cards -->
     <div class="container mt-4">
         <div class="row justify-content-center g-4">
 

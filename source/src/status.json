@@ -1,7 +1,9 @@
 [
-    { "id": "completed", "label": "Completato", "color": "success" },
-    { "id": "pending", "label": "In attesa", "color": "warning" },
-    { "id": "processing", "label": "In lavorazione", "color": "primary" },
+    { "id": "completed", "label": "Spedito", "color": "success", "__comment": "bootstrap colors" },
+    { "id": "pending", "label": "Prodotti ordinati", "color": "warning" },
+    { "id": "processing", "label": "In attesa di pagamento", "color": "primary" },
+    { "id": "refunded", "label": "Rimborsato", "color": "info" },
     { "id": "canceled", "label": "Annullato", "color": "danger" },
-    { "id": "refunded", "label": "Rimborsato", "color": "info" }
+    { "id": "problem", "label": "Problema da risolvere", "color": "danger" }
 ]
+

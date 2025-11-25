@@ -1,0 +1,33 @@
+.order-details {
+    display: table-row; /* sempre, non cambiamo display */
+}
+
+.detail-wrapper {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+    opacity: 0;
+}
+
+.detail-wrapper.open {
+    opacity: 1;
+    max-height: 500px; /* abbastanza grande da contenere tutto */
+}
+
+.note-timeline li {
+    padding: 10px 12px;
+    border-left: 3px solid #0d6efd;
+    background: #f8f9fa;
+    margin-bottom: 5px;
+}
+
+.note-author {
+    font-weight: bold;
+}
+
+.note-time {
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
+
+

@@ -9,3 +9,4 @@ const userTab = document.getElementById("userTab");
 userTab.addEventListener("click", () => {
     userMenu.classList.toggle("open");
 });
+
