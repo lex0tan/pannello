@@ -166,8 +166,8 @@ function addOrderRow(order) {
         <td>${escapeHtml(order.name)}</td>
         <td>${escapeHtml(order.platform)}</td>
         <td>${escapeHtml(order.customerHandle)}</td>
-        <td>${escapeHtml(order.creationDate)}</td>
-        <td>${escapeHtml(order.lastModified)}</td>
+        <td>${formatDateTime(escapeHtml(order.creationDate))}</td>
+        <td>${formatDateTime(escapeHtml(order.lastModified))}</td>
         <td>
             <div class="dropdown position-relative" style="pointer-events: auto;">
                 <button class="btn btn-sm dropdown-toggle status-btn" type="button"
