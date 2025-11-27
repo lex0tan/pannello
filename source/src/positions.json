@@ -1,12 +1,12 @@
 {
     "positions": [
-        "Magazzino A",
-        "Magazzino B",
-        "Scaffale 1",
-        "Scaffale 2",
-        "Cassetto 3",
-        "Box 12",
-        "Box 14",
-        "Unknown"
+        {"id" :"1", "name" : "Magazzino A"},
+        {"id" :"2", "name" : "Magazzino B"},
+        {"id" :"3", "name" : "Scaffale 1"},
+        {"id" :"4", "name" : "Scaffale 2"},
+        {"id" :"5", "name" : "Cassetto 3"},
+        {"id" :"6", "name" : "Box 12"},
+        {"id" :"7", "name" : "Box 14"},
+        {"id" :"8", "name" : "Unknown"}
     ]
 }

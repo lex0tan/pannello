@@ -1,5 +1,5 @@
 from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi import HTTPException
 
 from fastapi import FastAPI
 from helpers import orders

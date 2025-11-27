@@ -1,4 +1,4 @@
-from sql.sql_orders import fetchOrderProducts, fetchOrders
+from sql.sql_orders import fetchOrderProducts, fetchOrders, fetchOrderNotes
 
 
 
@@ -12,4 +12,4 @@ console = Console()
 
 
 # console.print(asyncio.run(fetchOrderProducts("1")))
-console.print(asyncio.run(fetchOrders(0, 5)))
+console.print(asyncio.run(fetchOrderNotes("1")))
