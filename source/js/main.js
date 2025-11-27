@@ -1,7 +1,5 @@
-// document.querySelector(".newOrder").addEventListener("click", function(){
-//     console.log("new order requested");
-
-// });
+const API_BASE_URL = "";           // vuoto → /orders, /orders/... direttamente
+const STATIC_BASE_URL = "/static"; // punta a C:/.../source
 
 const userMenu = document.querySelector(".discord-user-menu");
 const userTab = document.getElementById("userTab");

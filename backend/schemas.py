@@ -1,24 +1,20 @@
-from pydantic import BaseModel
-from typing import List, Optional
+from datetime import datetime
+from pydantic import BaseModel, Field
+from typing import List, Optional, Any
 
+# ---- Modelli "dato" ----
 
-# getOrders
 class orderOut(BaseModel):
     id: int
     name: str
     platform: str
     customerHandle: str
-    creationDate: str
-    LastModified: str
-    product: int
+    creationDate: datetime      # <-- tolto alias
+    lastModified: datetime
+    productCount: int
     status: str
     notes: str | None
 
-class ordersResponse(BaseModel):
-    success: bool
-    data: List[orderOut]
-
-# getOrderProducts
 class orderProductOut(BaseModel):
     id: int
     orderId: int
@@ -29,18 +25,25 @@ class orderProductOut(BaseModel):
     price: float
     positionId: int
 
-class orderProductsResponse(BaseModel):
-    success: bool
-    data: List[orderProductOut]
-
-
-# getOrderNotes
 class orderNotesOut(BaseModel):
     id: int
     note: str
-    createdAt: str
+    createdAt: datetime
     addedBy: str
 
-class orderNotesResponse(BaseModel):
+
+# ---- Standard response ----
+class StandardResponse(BaseModel):
     success: bool
-    data: List[orderNotesOut]
+    data: Optional[Any] = None
+    error: Optional[str] = None
+
+
+class ordersResponse(StandardResponse):
+    data: Optional[List[orderOut]] = None
+
+class orderProductsResponse(StandardResponse):
+    data: Optional[List[orderProductOut]] = None
+
+class orderNotesResponse(StandardResponse):
+    data: Optional[List[orderNotesOut]] = None

@@ -3,7 +3,7 @@
 }
 
 .detail-wrapper {
-    overflow: hidden;
+    overflow: visible;
     max-height: 0;
     transition: max-height 0.3s ease;
     opacity: 0;

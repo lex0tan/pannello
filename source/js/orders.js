@@ -1,7 +1,83 @@
 let positionsCache = null;
 
+async function toastpopup(message, type="info", duration=3000) {
+    console.log({"todo" : "toastpopup"}); // placeholder
+}
+
+function escapeHtml(value) {
+    if (value === null || value === undefined) return "";
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function formatDateTime(value) {
+    if (!value) return "";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) {
+        return String(value); // fallback se qualcosa va storto
+    }
+    return d.toLocaleString("it-IT", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+    });
+}
+
+async function apiGet(path) {
+    try {
+        const res = await fetch(`${API_BASE_URL}${path}`);
+
+        let payload;
+        try {
+            payload = await res.json();
+        } catch (e) {
+            console.error(`❌ Risposta non JSON da ${path}`, e);
+            return {
+                success: false,
+                data: null,
+                error: "Risposta non valida dal server"
+            };
+        }
+
+        // Se la risposta HTTP non è ok o success è false, normalizziamo l'errore
+        if (!res.ok || !payload.success) {
+            console.error(
+                `❌ Errore API su ${path}:`,
+                payload.error || res.statusText
+            );
+            return {
+                success: false,
+                data: null,
+                error: payload.error || `Errore HTTP ${res.status}`
+            };
+        }
+
+        // Caso ok: garantiamo sempre { success, data, error }
+        return {
+            success: true,
+            data: payload.data ?? null,
+            error: null
+        };
+
+    } catch (err) {
+        console.error(`❌ Errore di rete chiamando ${path}:`, err);
+        return {
+            success: false,
+            data: null,
+            error: "Errore di rete durante la chiamata al server"
+        };
+    }
+}
+
 async function loadStatuses() {
-    const res = await fetch("http://127.0.0.1:5500/source/src/status.json");
+    const res = await fetch(`${STATIC_BASE_URL}/src/status.json`);
     const statuses = await res.json();
 
     document.querySelectorAll(".status-btn").forEach(button => {
@@ -29,11 +105,11 @@ async function loadStatuses() {
             button.dataset.currentStatus = id;
         });
     });
-}
+};
 
 async function loadPositions() {
     try {
-        const res = await fetch("http://127.0.0.1:5500/source/src/positions.json");
+        const res = await fetch(`${STATIC_BASE_URL}/src/positions.json`);
         const data = await res.json();
 
         // normalizza id come Number
@@ -70,17 +146,14 @@ async function loadPositionsIfNeeded() {
     }
 }
 
-async function fetchOrders(page) {
-    if (page === undefined) page = 0;
-    try {
-        const response = await fetch(`http://127.0.0.1:8000/orders/getOrders?start=${page}`);
-        const orders = await response.json();
-        console.log("Ordini caricati:", orders);
-        return orders;
-    } catch (error) {
-        console.error("Errore nel caricamento degli ordini:", error);
-        return [];
+async function fetchOrders(page = 0) {
+    const res = await apiGet(`/orders?page=${page}`);
+    if (!res.success) {
+        await toastpopup("Errore nel caricamento degli ordini: " + res.error, "error");
+        return { success: false, data: [], error: res.error };
     }
+    console.log("Ordini caricati:", res.data);
+    return res;
 }
 
 function addOrderRow(order) {
@@ -89,17 +162,17 @@ function addOrderRow(order) {
     const row = document.createElement("tr");
     row.classList.add("order-row");
     row.innerHTML = `
-        <td>${order.id}</td>
-        <td>${order.name}</td>
-        <td>${order.platform}</td>
-        <td>${order.customerHandle}</td>
-        <td>${order.creationDate}</td>
-        <td>${order.lastModified}</td>
+        <td>${escapeHtml(order.id)}</td>
+        <td>${escapeHtml(order.name)}</td>
+        <td>${escapeHtml(order.platform)}</td>
+        <td>${escapeHtml(order.customerHandle)}</td>
+        <td>${escapeHtml(order.creationDate)}</td>
+        <td>${escapeHtml(order.lastModified)}</td>
         <td>
             <div class="dropdown position-relative" style="pointer-events: auto;">
                 <button class="btn btn-sm dropdown-toggle status-btn" type="button"
-                    data-bs-toggle="dropdown" data-current-status="${order.status}" position-relative>
-                    <span class="badge bg-warning">${order.status}</span>
+                    data-bs-toggle="dropdown" data-current-status="${escapeHtml(order.status)}" position-relative>
+                    <span class="badge bg-warning">${escapeHtml(order.status)}</span>
                 </button>
                 <ul class="dropdown-menu status-menu"></ul>
             </div>
@@ -129,7 +202,7 @@ function addOrderRow(order) {
 
                     <tbody id="products-${order.id}">
                         ${
-                            Array(Number(order.product) || 1).fill(0).map(() => `
+                            Array(Number(order.productCount) || 1).fill(0).map(() => `
                             <tr class="product-placeholder-row placeholder-glow">
                                 <td><span class="placeholder col-8"></span></td>
                                 <td><span class="placeholder col-4"></span></td>
@@ -176,17 +249,31 @@ function addOrderRow(order) {
 document.addEventListener("DOMContentLoaded", loadPositions);
 
 
-document.addEventListener("DOMContentLoaded", () =>
-    fetchOrders(0).then(response => {
-        if (!response.success) {
-            console.error("Errore dal server:", response.error);
-            return;
-        }
-        response.data.forEach(order => addOrderRow(order));
-        toggleDetails();      // <<== Qui dentro, dopo aver aggiunto righe
-        loadStatuses();
-    })
-);
+document.addEventListener("DOMContentLoaded", () => {
+    fetchOrders(0)
+        .then(response => {
+            if (!response.success) {
+                console.error("Errore dal server:", response.error);
+                showOrdersTableMessage("Errore nel caricamento degli ordini.");
+                return;
+            }
+
+            if (!response.data || response.data.length === 0) {
+                showOrdersTableMessage("Nessun ordine trovato.");
+                return;
+            }
+
+            response.data.forEach(order => addOrderRow(order));
+
+            // inizializzo solo se ho realmente popolato la tabella
+            toggleDetails();
+            loadStatuses();
+        })
+        .catch(err => {
+            console.error("Errore inatteso durante l'inizializzazione ordini:", err);
+            showOrdersTableMessage("Errore imprevisto durante il caricamento degli ordini.");
+        });
+});
 
 function toggleDetails() {
     document.querySelectorAll(".order-row").forEach(row => {
@@ -209,8 +296,8 @@ function toggleDetails() {
                     await loadPositionsIfNeeded();  // assicurati che positionsCache sia valorizzato
 
                     const [productsRes, notesRes] = await Promise.all([
-                        fetch(`http://localhost:8000/orders/getOrderProducts/${orderId}`).then(r => r.json()),
-                        fetch(`http://localhost:8000/orders/getOrderNotes/${orderId}`).then(r => r.json())
+                        apiGet(`/orders/${orderId}/products`),
+                        apiGet(`/orders/${orderId}/notes`)
                     ]);
 
                     if (!productsRes.success) {
@@ -223,26 +310,46 @@ function toggleDetails() {
                         return;
                     }
 
+                    // Prodotti
                     const tbody = document.getElementById(`products-${orderId}`);
                     tbody.innerHTML = productsRes.data.map(p => `
                         <tr>
-                            <td>${p.productName}</td>
-                            <td>${p.sku}</td>
+                            <td>${escapeHtml(p.productName)}</td>
+                            <td>${escapeHtml(p.sku)}</td>
                             <td class="text-center">${p.quantity}</td>
                             <td class="text-end">${Number(p.price).toFixed(2)}€</td>
                             <td class="text-end fw-bold">${(p.price * p.quantity).toFixed(2)}€</td>
-                            <td class="text-center">${translatePosition(p.positionId)}</td>
+                            <td class="text-center">${escapeHtml(p.positionId)}</td>
                         </tr>
                     `).join("");
 
+                    // Note
                     const noteList = wrapper.querySelector(".note-timeline");
                     noteList.innerHTML = notesRes.data.map(note => `
-                        <li class="list-group-item d-flex justify-content-between align-items-start">
-                            <div class="me-auto">
-                                <div class="fw-semibold">${note.note}</div>
-                                <small class="text-muted">${note.createdAt}</small>
+                        <li class="list-group-item border-0 px-0">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge rounded-pill text-bg-primary me-2">
+                                        ${escapeHtml(note.addedBy)}
+                                    </span>
+                                    <small class="text-muted">
+                                        ${escapeHtml(formatDateTime(note.createdAt))}
+                                    </small>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-link text-muted p-0" type="button"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><button class="dropdown-item note-edit-btn" type="button">Modifica</button></li>
+                                        <li><button class="dropdown-item note-delete-btn" type="button">Elimina</button></li>
+                                    </ul>
+                                </div>
                             </div>
-                            <span class="badge text-bg-primary rounded-pill">${note.addedBy}</span>
+                            <div class="ps-1 text-body">
+                                ${escapeHtml(note.note)}
+                            </div>
                         </li>
                     `).join("");
 
@@ -272,11 +379,31 @@ document.addEventListener("DOMContentLoaded", () => {
                 const now = new Date().toLocaleString("it-IT");
 
                 const li = document.createElement("li");
-                li.classList.add("list-group-item");
+                li.className = "list-group-item border-0 px-0";
                 li.innerHTML = `
-                    <div class="note-author">${user}</div>
-                    <div class="note-text">${text}</div>
-                    <div class="note-time">${now}</div>
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <div class="d-flex align-items-center">
+                            <span class="badge rounded-pill text-bg-primary me-2">
+                                ${escapeHtml(user)}
+                            </span>
+                            <small class="text-muted">
+                                ${escapeHtml(now)}
+                            </small>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-link text-muted p-0" type="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><button class="dropdown-item note-edit-btn" type="button">Modifica</button></li>
+                                <li><button class="dropdown-item note-delete-btn" type="button">Elimina</button></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="ps-1 text-body">
+                        ${escapeHtml(text)}
+                    </div>
                 `;
                 list.prepend(li);
                 textarea.value = "";
