@@ -1,7 +1,38 @@
 let positionsCache = null;
 
-async function toastpopup(message, type="info", duration=3000) {
-    console.log({"todo" : "toastpopup"}); // placeholder
+async function toastpopup(message, type = "info", duration = 3000) {
+    const containerId = "toastpopup-container";
+
+    // Crea contenitore se non esiste
+    let container = document.getElementById(containerId);
+    if (!container) {
+        container = document.createElement("div");
+        container.id = containerId;
+        container.style.position = "fixed";
+        container.style.top = "1rem";
+        container.style.right = "1rem";
+        container.style.zIndex = "1055";
+        container.style.maxWidth = "320px";
+        document.body.appendChild(container);
+    }
+
+    // Crea alert
+    const alert = document.createElement("div");
+    alert.className = `alert alert-${type} alert-dismissible fade show shadow`;
+    alert.role = "alert";
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+
+    container.appendChild(alert);
+
+    // Rimozione automatica
+    setTimeout(() => {
+        alert.classList.remove("show");
+        alert.classList.add("fade");
+        setTimeout(() => alert.remove(), 300); 
+    }, duration);
 }
 
 function escapeHtml(value) {
@@ -63,6 +94,97 @@ async function apiGet(path) {
         return {
             success: true,
             data: payload.data ?? null,
+            error: null
+        };
+
+    } catch (err) {
+        console.error(`❌ Errore di rete chiamando ${path}:`, err);
+        return {
+            success: false,
+            data: null,
+            error: "Errore di rete durante la chiamata al server"
+        };
+    }
+}
+
+async function apiPost(path, body) {
+    try {
+        const res = await fetch(`${API_BASE_URL}${path}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body)
+        });
+
+        let payload;
+        try {
+            payload = await res.json();
+        } catch (e) {
+            console.error(`❌ Risposta non JSON da ${path}`, e);
+            return {
+                success: false,
+                data: null,
+                error: "Risposta non valida dal server"
+            };
+        }
+
+        // Se la risposta HTTP non è ok o success è false, normalizziamo l'errore
+        if (!res.ok || !payload.success) {
+            console.error(
+                `❌ Errore API su ${path}:`,
+                payload.error || res.statusText
+            );
+            return {
+                success: false,
+                data: null,
+                error: payload.error || `Errore HTTP ${res.status}`
+            };
+        }
+        return {
+            success: true,
+            data: payload.data ?? null,
+            error: null
+        };
+
+    } catch (err) {
+        console.error(`❌ Errore di rete chiamando ${path}:`, err);
+        return {
+            success: false,
+            data: null,
+            error: "Errore di rete durante la chiamata al server"
+        };
+    }
+}
+
+async function apiDelete(path) {
+    try {
+        const res = await fetch(`${API_BASE_URL}${path}`, {
+            method: "DELETE"
+        });
+
+        let payload = null;
+        try {
+            payload = await res.json();
+        } catch (e) {
+            console.warn(`⚠ Nessun JSON valido da ${path}, uso fallback`);
+        }
+
+        if (!res.ok || !payload?.success) {
+            console.error(
+                `❌ Errore API su ${path}:`,
+                payload?.error || res.statusText
+            );
+            return {
+                success: false,
+                data: null,
+                error: payload?.error || `Errore HTTP ${res.status}`
+            };
+        }
+
+        return {
+            success: true,
+            data: payload?.data ?? null,
             error: null
         };
 
@@ -218,7 +340,7 @@ function addOrderRow(order) {
 
                 <div class="mt-3">
                     <label class="fw-bold mb-2">Note libere</label>
-                    <textarea class="form-control order-note-input" rows="3" placeholder="Scrivi una nota..."></textarea>
+                    <textarea class="form-control order-note-input" rows="1" placeholder="Scrivi una nota..."></textarea>
                     <button class="btn btn-primary btn-sm mt-2 add-note-btn" data-orderid="${order.id}">Aggiungi nota</button>
                 </div>
 
@@ -325,6 +447,7 @@ function toggleDetails() {
 
                     // Note
                     const noteList = wrapper.querySelector(".note-timeline");
+                    console.log("Note caricate:", notesRes.data);
                     noteList.innerHTML = notesRes.data.map(note => `
                         <li class="list-group-item border-0 px-0">
                             <div class="d-flex align-items-center justify-content-between mb-1">
@@ -342,8 +465,7 @@ function toggleDetails() {
                                         <i class="bi bi-three-dots-vertical"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><button class="dropdown-item note-edit-btn" type="button">Modifica</button></li>
-                                        <li><button class="dropdown-item note-delete-btn" type="button">Elimina</button></li>
+                                        <li><button class="dropdown-item note-delete-btn" type="button" data-noteid="${note.id}">Elimina</button></li>
                                     </ul>
                                 </div>
                             </div>
@@ -354,6 +476,86 @@ function toggleDetails() {
                     `).join("");
 
                     wrapper.classList.add("hasLoadedProducts");
+
+                    document.querySelector(".add-note-btn").addEventListener("click", async (e) => {
+                        const orderId = e.target.dataset.orderid;
+                        const wrapper = e.target.closest(".detail-content");
+                        const textarea = wrapper.querySelector(".order-note-input");
+                        const noteText = textarea.value.trim();
+                        console.log({orderId, noteText});
+                        if (noteText === "") return;
+                        const userElement = document.querySelector(".username");
+                        if (!userElement) {
+                            await toastpopup("Utente non identificato", "error");
+                            return;
+                        }
+                        const addedBy = userElement.textContent.trim();
+                        const addNoteRes = await apiPost(`orders/${orderId}/addNotes`, {
+                            note: noteText,
+                            addedBy: addedBy
+                        });
+                        if (!addNoteRes.success) {
+                            await toastpopup("Errore nell'aggiunta della nota: " + addNoteRes.error, "error");
+                            return;
+                        }
+                        console.log("data:", addNoteRes.data);
+                        await toastpopup("Nota aggiunta con successo!", "success");
+                        textarea.value = "";
+                        const newNote = addNoteRes.data;
+                        const li = document.createElement("li");
+                        li.classList.add("list-group-item", "border-0", "px-0");
+                        li.innerHTML = `
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge rounded-pill text-bg-primary me-2">
+                                        ${escapeHtml(newNote.addedby)}
+                                    </span>
+                                    <small class="text-muted">
+                                        ${escapeHtml(formatDateTime(newNote.createdat))}
+                                    </small>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-link text-muted p-0" type="button"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><button class="dropdown-item note-delete-btn" type="button" data-noteid="${newNote.id}">Elimina</button></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="ps-1 text-body">
+                                ${escapeHtml(newNote.note)}
+                            </div>
+                        `;
+                        noteList.prepend(li);
+                        li.querySelector(".note-delete-btn").addEventListener("click", async (e) => {
+                        const noteId = e.target.dataset.noteid;
+                        const deleteRes = await apiDelete(`orders/${orderId}/deleteNote/${noteId}`);
+                        if (!deleteRes.success) {
+                            await toastpopup("Errore nella cancellazione della nota: " + deleteRes.error, "error");
+                            return;
+                        }
+                        await toastpopup("Nota eliminata con successo!", "success");
+                        li.remove();
+                    });
+                    });
+
+                    document.querySelectorAll(".note-delete-btn").forEach(btn => {
+                        btn.addEventListener("click", async (e) => {
+                            const noteId = e.target.dataset.noteid;
+                            console.log("Elimina nota id:", noteId);
+                            const deleteRes = await apiDelete(`orders/${orderId}/deleteNote/${noteId}`);
+                            console.log({deleteRes});
+                            if (!deleteRes.success) {
+                                await toastpopup("Errore nella cancellazione della nota: " + deleteRes.error, "error");
+                                return;
+                            }
+                            await toastpopup("Nota eliminata con successo!", "success");
+                            btn.closest(".list-group-item").remove();
+                        });
+                    });
+
                 } catch (err) {
                     console.error("Errore nel caricamento dettagli:", err);
                 }
@@ -362,53 +564,7 @@ function toggleDetails() {
     });
 }
 
-//notes system
-document.addEventListener("DOMContentLoaded", () => {
-    function initNoteSystem() {
-        document.querySelectorAll(".add-note-btn").forEach(btn => {
-            btn.addEventListener("click", () => {
-                const wrapper = btn.closest(".detail-content");
 
-                const textarea = wrapper.querySelector(".order-note-input");
-                const list = wrapper.querySelector(".note-timeline");
 
-                const text = textarea.value.trim();
-                if (text === "") return;
 
-                const user = document.querySelector(".username").textContent.trim();
-                const now = new Date().toLocaleString("it-IT");
 
-                const li = document.createElement("li");
-                li.className = "list-group-item border-0 px-0";
-                li.innerHTML = `
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                        <div class="d-flex align-items-center">
-                            <span class="badge rounded-pill text-bg-primary me-2">
-                                ${escapeHtml(user)}
-                            </span>
-                            <small class="text-muted">
-                                ${escapeHtml(now)}
-                            </small>
-                        </div>
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-link text-muted p-0" type="button"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-three-dots-vertical"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><button class="dropdown-item note-edit-btn" type="button">Modifica</button></li>
-                                <li><button class="dropdown-item note-delete-btn" type="button">Elimina</button></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="ps-1 text-body">
-                        ${escapeHtml(text)}
-                    </div>
-                `;
-                list.prepend(li);
-                textarea.value = "";
-            });
-        });
-    }
-    initNoteSystem();
-});
