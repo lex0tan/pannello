@@ -5,8 +5,7 @@ async def fetchOrders(start: int | None = None, finish: int | None = None):
     if start is None:
         start = 0
     if finish is None:
-        # se hai una funzione getOrdersPerPage usala, altrimenti fisso
-        page_size = 10
+        page_size = await getOrdersPerPage()
     else:
         page_size = finish - start
 
@@ -134,7 +133,7 @@ async def fetchOrderNotes(orderId: int):
                 "note": r["note"],
                 "createdAt": r["created_at"],
                 "addedBy": r["added_by"],
-            } for r in rows]
+            } for r in rows[::-1]]  # ordine inverso (più recenti prima)
 
             return {"success": True, "data": data}
 
@@ -145,4 +144,49 @@ async def fetchOrderNotes(orderId: int):
         console.print(f"❌ fetchOrderNotes error: {e}")
         return {"success": False, "error": str(e)}
 
+async def addOrderNotes(orderId: int, note: str, addedBy: str):
+    try:
+        conn = await asyncpg.connect(POSTGRES_DSN)
+        try:
+            data = await conn.fetchrow(
+                """
+                INSERT INTO order_notes (order_id, note, added_by)
+                VALUES ($1, $2, $3)
+                RETURNING id, note, added_by as addedBy, created_at as createdAt
+                """,
 
+                orderId,
+                note,
+                addedBy,
+            )
+            await conn.close()
+            return {"success": True, "data": dict(data)}
+
+        except Exception as e:
+            console.print(f"❌ updateOrderNotes error: {e}")
+    except Exception as e:
+        console.print(f"❌ updateOrderNotes connection error: {e}")
+        return {"success": False, "error": str(e)}
+
+async def removeOrderNote(orderId: int, noteId: int):
+    try:
+        conn = await asyncpg.connect(POSTGRES_DSN)
+        try:
+            result = await conn.execute(
+                """
+                DELETE FROM order_notes
+                WHERE order_id = $1 AND id = $2
+                """,
+                orderId,
+                noteId,
+            )
+            await conn.close()
+            if result == "DELETE 0":
+                return {"success": False, "error": "Note not found"}
+            return {"success": True}
+        except Exception as e:
+            console.print(f"❌ removeOrderNote error: {e}")
+            return {"success": False, "error": str(e)}
+    except Exception as e:
+        console.print(f"❌ removeOrderNote connection error: {e}")
+        return {"success": False, "error": str(e)}

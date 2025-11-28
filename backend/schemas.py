@@ -32,12 +32,15 @@ class orderNotesOut(BaseModel):
     addedBy: str
 
 
+class orderNotesIn(BaseModel):
+    note: str = Field(..., min_length=1, max_length=1000)
+    addedBy: str = Field(..., min_length=1, max_length=100)
+    
 # ---- Standard response ----
 class StandardResponse(BaseModel):
     success: bool
     data: Optional[Any] = None
     error: Optional[str] = None
-
 
 class ordersResponse(StandardResponse):
     data: Optional[List[orderOut]] = None
