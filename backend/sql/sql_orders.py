@@ -125,9 +125,6 @@ async def fetchOrderNotes(orderId: int):
                 orderId,
             )
 
-            if not rows:
-                return {"success": False, "error": "Order not found"}
-
             data = [{
                 "id": r["id"],
                 "note": r["note"],
@@ -159,13 +156,15 @@ async def addOrderNotes(orderId: int, note: str, addedBy: str):
                 note,
                 addedBy,
             )
-            await conn.close()
             return {"success": True, "data": dict(data)}
 
         except Exception as e:
-            console.print(f"❌ updateOrderNotes error: {e}")
+            console.print(f"❌ addOrderNotes error: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            await conn.close()
     except Exception as e:
-        console.print(f"❌ updateOrderNotes connection error: {e}")
+        console.print(f"❌ addOrderNotes connection error: {e}")
         return {"success": False, "error": str(e)}
 
 async def removeOrderNote(orderId: int, noteId: int):
@@ -180,13 +179,14 @@ async def removeOrderNote(orderId: int, noteId: int):
                 orderId,
                 noteId,
             )
-            await conn.close()
             if result == "DELETE 0":
                 return {"success": False, "error": "Note not found"}
             return {"success": True}
         except Exception as e:
             console.print(f"❌ removeOrderNote error: {e}")
             return {"success": False, "error": str(e)}
+        finally:
+            await conn.close()
     except Exception as e:
         console.print(f"❌ removeOrderNote connection error: {e}")
         return {"success": False, "error": str(e)}
