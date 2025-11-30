@@ -1,0 +1,7 @@
+{
+  "0": { "label": "Non impostato" },
+  "1": { "label": "Carta di credito" },
+  "2": { "label": "PayPal" },
+  "3": { "label": "Bonifico bancario" },
+  "4": { "label": "Contrassegno" }
+}

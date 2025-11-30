@@ -9,11 +9,15 @@ class orderOut(BaseModel):
     name: str
     platform: str
     customerHandle: str
-    creationDate: datetime      # <-- tolto alias
+    creationDate: datetime
     lastModified: datetime
     productCount: int
-    status: str
+    status: int
     notes: str | None
+    shippingPrice : float | None
+    paymentMethod: int | None
+    tag : int | None
+    orderTotal: float | None
 
 class orderProductOut(BaseModel):
     id: int
@@ -31,11 +35,10 @@ class orderNotesOut(BaseModel):
     createdAt: datetime
     addedBy: str
 
-
 class orderNotesIn(BaseModel):
     note: str = Field(..., min_length=1, max_length=1000)
     addedBy: str = Field(..., min_length=1, max_length=100)
-    
+
 # ---- Standard response ----
 class StandardResponse(BaseModel):
     success: bool

@@ -1,0 +1,10 @@
+{
+    "0": { "label": "No status", "color": "#dc3545" },
+    "1": { "label": "Consegnato", "color": "#28a745" },
+    "2": { "label": "Prodotti ordinati", "color": "#ffc107" },
+    "3": { "label": "In attesa di pagamento", "color": "#0d6efd" },
+    "4": { "label": "Rimborsato", "color": "#17a2b8" },
+    "5": { "label": "Annullato", "color": "#dc3545" },
+    "6": { "label": "Problema da risolvere", "color": "#dc3545" },
+    "7": { "label": "Da spedire", "color": "#28e745" }
+}

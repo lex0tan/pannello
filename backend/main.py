@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import FastAPI
 
 
-
+from api import static as staticRouter
 from helpers import orders as ordersRouter
 
 
@@ -47,6 +47,7 @@ async def ignore():
 
 
 app.include_router(ordersRouter.router)
+app.include_router(staticRouter.router)
 
 
 

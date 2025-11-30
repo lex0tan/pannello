@@ -1,21 +1,62 @@
-from helpers.config import ORDERS_DB_PATH, POSTGRES_DSN, console, getOrdersPerPage
+from helpers.config import POSTGRES_DSN, console, getOrdersPerPage
 import asyncpg
+from typing import Any, Dict, Optional
 
-async def fetchOrders(start: int | None = None, finish: int | None = None):
-    if start is None:
-        start = 0
-    if finish is None:
-        page_size = await getOrdersPerPage()
-    else:
-        page_size = finish - start
+VALID_SORT_FIELDS = {
+    "id": "o.id",
+    "name": "o.name",
+    "platform": "o.platform",
+    "created": "o.creation_date",
+    "lastModified": "o.last_modified",
+    "total": "o.ordertotal",
+}
 
-    console.print(f"Fetching orders from {start} to {start + page_size}...")
 
+async def fetchOrders(
+    page: int = 0,
+    status: Optional[int] = None,
+    sort_by: str = "creationDate",
+    sort_dir: str = "desc",
+) -> Dict[str, Any]:
     try:
         conn = await asyncpg.connect(POSTGRES_DSN)
         try:
-            rows = await conn.fetch(
-                """
+            # page_size dinamico da config / file
+            page_size = await getOrdersPerPage()
+            if not isinstance(page_size, int) or page_size <= 0:
+                page_size = 20  # fallback di sicurezza
+
+            start = page * page_size
+
+            sort_map = {
+                "id": "o.id",
+                "name": "o.name",
+                "platform": "o.platform",
+                "creationDate": "o.creation_date",
+                "lastModified": "o.last_modified",
+                "orderTotal": "o.order_total",
+            }
+            order_by_col = sort_map.get(sort_by, "o.creation_date")
+            order_dir_sql = "ASC" if sort_dir.lower() == "asc" else "DESC"
+
+            where_clauses = []
+            params = []
+            idx = 1
+
+            if status is not None:
+                where_clauses.append(f"o.status = ${idx}")
+                params.append(status)
+                idx += 1
+
+            where_sql = ""
+            if where_clauses:
+                where_sql = "WHERE " + " AND ".join(where_clauses)
+
+            limit_placeholder = f"${idx}"
+            offset_placeholder = f"${idx + 1}"
+            params.extend([page_size, start])
+
+            query = f"""
                 SELECT
                     o.id,
                     o.name,
@@ -25,9 +66,14 @@ async def fetchOrders(start: int | None = None, finish: int | None = None):
                     o.last_modified,
                     o.status,
                     o.notes,
+                    o.shippingprice,
+                    o.payment_method,
+                    o.tag,
+                    o.order_total,
                     COALESCE(COUNT(p.id), 0) AS product_count
-                FROM Orders o
+                FROM orders o
                 LEFT JOIN order_products p ON p.order_id = o.id
+                {where_sql}
                 GROUP BY
                     o.id,
                     o.name,
@@ -36,24 +82,36 @@ async def fetchOrders(start: int | None = None, finish: int | None = None):
                     o.creation_date,
                     o.last_modified,
                     o.status,
-                    o.notes
-                ORDER BY o.id
-                LIMIT $1 OFFSET $2
-                """,
-                page_size,
-                start,
-            )
-            data = [{
-                "id": r["id"],
-                "name": r["name"],
-                "platform": r["platform"],
-                "customerHandle": r["customer_handle"],
-                "creationDate": r["creation_date"],
-                "lastModified": r["last_modified"],
-                "productCount": r["product_count"],
-                "status": r["status"],
-                "notes": r["notes"],
-            } for r in rows]
+                    o.notes,
+                    o.shippingprice,
+                    o.payment_method,
+                    o.tag,
+                    o.order_total
+                ORDER BY {order_by_col} {order_dir_sql}
+                LIMIT {limit_placeholder}
+                OFFSET {offset_placeholder}
+            """
+
+            rows = await conn.fetch(query, *params)
+
+            data = [
+                {
+                    "id": r["id"],
+                    "name": r["name"],
+                    "platform": r["platform"],
+                    "customerHandle": r["customer_handle"],
+                    "creationDate": r["creation_date"],
+                    "lastModified": r["last_modified"],
+                    "status": r["status"],
+                    "notes": r["notes"],
+                    "shippingPrice": r["shippingprice"],
+                    "paymentMethod": r["payment_method"],
+                    "tag": r["tag"],
+                    "orderTotal": r["order_total"],
+                    "productCount": r["product_count"],
+                }
+                for r in rows
+            ]
 
             return {"success": True, "data": data}
 
@@ -61,8 +119,12 @@ async def fetchOrders(start: int | None = None, finish: int | None = None):
             await conn.close()
 
     except Exception as e:
-        console.print(f"❌ fetchOrders error: {e}")
-        return {"success": False, "error": str(e)}
+        console.print_exception()
+        return {
+            "success": False,
+            "data": None,
+            "error": str(e),
+        }
 
 async def fetchOrderProducts(orderId: int):
     try:
@@ -126,7 +188,7 @@ async def fetchOrderNotes(orderId: int):
             )
 
             if not rows:
-                return {"success": False, "error": "Order not found"}
+                return {"success": True, "data": []}
 
             data = [{
                 "id": r["id"],
@@ -190,3 +252,69 @@ async def removeOrderNote(orderId: int, noteId: int):
     except Exception as e:
         console.print(f"❌ removeOrderNote connection error: {e}")
         return {"success": False, "error": str(e)}
+
+async def countOrders():
+    try:
+        conn = await asyncpg.connect(POSTGRES_DSN)
+        try:
+            rows = await conn.fetchrow(
+                """
+                SELECT count(*) as count FROM Orders
+
+                """
+            )
+            await conn.close()
+            return {"success": True, "data": rows["count"]}
+        finally:
+            await conn.close()
+
+    except Exception as e:
+        console.print(f"❌ countOrders error: {e}")
+        return {"success": False, "error": str(e)}
+
+async def countOrders_sorted(column: str, value: str):
+    try:
+        conn = await asyncpg.connect(POSTGRES_DSN)
+        try:
+            query = f"SELECT count(*) as count FROM Orders WHERE {column} = $1"
+            rows = await conn.fetchrow(
+                query,
+                value
+            )
+            await conn.close()
+            return {"success": True, "data": rows["count"]}
+        finally:
+            await conn.close()
+
+    except Exception as e:
+        console.print(f"❌ countOrders_sorted error: {e}")
+        return {"success": False, "error": str(e)}
+
+async def setOrderStatus(orderId: int, newStatus: int):
+    try:
+        conn = await asyncpg.connect(POSTGRES_DSN)
+        try:
+            result = await conn.execute(
+                """
+                UPDATE Orders
+                SET status = $1
+                WHERE id = $2
+                """,
+                newStatus,
+                orderId,
+            )
+            await conn.close()
+            if result == "UPDATE 0":
+                return {"success": False, "error": "Order not found"}
+            return {"success": True}
+        except Exception as e:
+            console.print(f"❌ setOrderStatus error: {e}")
+            return {"success": False, "error": str(e)}
+    except Exception as e:
+        console.print(f"❌ setOrderStatus connection error: {e}")
+        return {"success": False, "error": str(e)}
+
+
+
+
+

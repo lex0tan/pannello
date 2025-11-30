@@ -1,0 +1,10 @@
+{
+    "0": { "label": "Nessun tag", "color": "#6c757d" },
+    "1": { "label": "VIP", "color": "#dc3545" },
+    "2": { "label": "Nuovo cliente", "color": "#28a745" },
+    "3": { "label": "In attesa", "color": "#ffc107" },
+    "4": { "label": "Problema risolto", "color": "#17a2b8" },
+    "5": { "label": "Cliente abituale", "color": "#0d6efd"},
+    "6": { "label": "Sospetto frode", "color": "#343a40" }
+
+}
