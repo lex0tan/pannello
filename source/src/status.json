@@ -1,9 +1,0 @@
-[
-    { "id": "completed", "label": "Spedito", "color": "success", "__comment": "bootstrap colors" },
-    { "id": "pending", "label": "Prodotti ordinati", "color": "warning" },
-    { "id": "processing", "label": "In attesa di pagamento", "color": "primary" },
-    { "id": "refunded", "label": "Rimborsato", "color": "info" },
-    { "id": "canceled", "label": "Annullato", "color": "danger" },
-    { "id": "problem", "label": "Problema da risolvere", "color": "danger" }
-]
-

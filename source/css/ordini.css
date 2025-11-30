@@ -1,17 +1,17 @@
 .order-details {
-    display: table-row; /* sempre, non cambiamo display */
+    /* display: table-row;  // puoi anche lasciarla, ma non è necessaria */
 }
 
 .detail-wrapper {
-    overflow: visible;
+    overflow: hidden; /* <-- CAMBIA QUI: prima era visible */
     max-height: 0;
-    transition: max-height 0.3s ease;
     opacity: 0;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
 }
 
 .detail-wrapper.open {
     opacity: 1;
-    max-height: 500px; /* abbastanza grande da contenere tutto */
+    max-height: 1000px; /* o 800 / 1200 in base a quanto è alto il contenuto */
 }
 
 .note-timeline li {
