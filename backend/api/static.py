@@ -26,3 +26,7 @@ async def get_tags():
 @router.get("/logo.png")
 async def get_logo():
     return FileResponse("api/src/logo.png", media_type="image/png")
+
+@router.get("/sidebar.html")
+async def get_sidebar():
+    return FileResponse("api/src/sidebar.html", media_type="text/html")

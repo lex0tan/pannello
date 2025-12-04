@@ -2,9 +2,9 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import List, Optional, Any
 
-# ---- Modelli "dato" ----
+# ---- orders ----
 
-class orderOut(BaseModel):
+class OrderOut(BaseModel):
     id: int
     name: str
     platform: str
@@ -19,7 +19,7 @@ class orderOut(BaseModel):
     tag : int | None
     orderTotal: float | None
 
-class orderProductOut(BaseModel):
+class OrderProductOut(BaseModel):
     id: int
     orderId: int
     productId: int | None
@@ -29,13 +29,13 @@ class orderProductOut(BaseModel):
     price: float
     positionId: int
 
-class orderNotesOut(BaseModel):
+class OrderNotesOut(BaseModel):
     id: int
     note: str
     createdAt: datetime
     addedBy: str
 
-class orderNotesIn(BaseModel):
+class OrderNotesIn(BaseModel):
     note: str = Field(..., min_length=1, max_length=1000)
     addedBy: str = Field(..., min_length=1, max_length=100)
 
@@ -45,11 +45,36 @@ class StandardResponse(BaseModel):
     data: Optional[Any] = None
     error: Optional[str] = None
 
-class ordersResponse(StandardResponse):
-    data: Optional[List[orderOut]] = None
+class OrdersResponse(StandardResponse):
+    data: Optional[List[OrderOut]] = None
 
-class orderProductsResponse(StandardResponse):
-    data: Optional[List[orderProductOut]] = None
+class OrderProductsResponse(StandardResponse):
+    data: Optional[List[OrderProductOut]] = None
 
-class orderNotesResponse(StandardResponse):
-    data: Optional[List[orderNotesOut]] = None
+class OrderNotesResponse(StandardResponse):
+    data: Optional[List[OrderNotesOut]] = None
+
+
+
+# ---- orders ----
+
+class ClientInfo(BaseModel):
+    id: int
+    name: str
+    funnel: int
+    tag : int | None
+    registrationDate: datetime
+    notes: str | None
+    status: int
+    lang: str | None
+    last_order_date: datetime | None
+    total_spent: float | None
+
+
+class clientIn(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    funnel: int
+    tag : int | None
+    notes: str | None
+    status: int
+    lang: str | None

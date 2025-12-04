@@ -1,15 +1,23 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from pathlib import Path
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from pathlib import Path
 
-
+from helpers.config import POSTGRES_DSN, init_pool, close_pool
 from api import static as staticRouter
 from helpers import orders as ordersRouter
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_pool(POSTGRES_DSN)
+    try:
+        yield
+    finally:
+        await close_pool()
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 BASE_DIR = Path(__file__).resolve().parent          # → .../backend
 FRONTEND_DIR = BASE_DIR.parent / "source"           # → .../source
