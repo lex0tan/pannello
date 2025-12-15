@@ -11,7 +11,7 @@ from schemas import (
     OrderNotesOut,
     OrderNotesIn,
 )
-from sql.sql_orders import (
+from sql.orders.sql_orders import (
     fetchOrders,
     fetchOrderProducts,
     fetchOrderNotes,
@@ -22,7 +22,7 @@ from sql.sql_orders import (
     countOrders_sorted,
 )
 from helpers.config import console # for logging, non cancellare
-from helpers.decorators import standard_error_handler
+from utils.decorators import standard_error_handler
 
 router = APIRouter(prefix="/orders")
 

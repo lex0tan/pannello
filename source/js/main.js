@@ -4,6 +4,9 @@ const STATIC_BASE_URL = "/static"; // punta a C:/.../source
 const userMenu = document.querySelector(".discord-user-menu");
 const userTab = document.getElementById("userTab");
 
+const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
 document.addEventListener("DOMContentLoaded", () => {
     // GET LOGO
     fetch(`config/logo.png`)
@@ -146,4 +149,94 @@ function formatDateTime(value) {
         minute: "2-digit",
         second: "2-digit"
     });
+}
+
+async function loadSidebar() {
+    const container = document.getElementById("sidebar-container");
+    if (!container) return;
+
+    const res = await fetch("config/sidebar.html"); // adatta il path ai tuoi static
+    if (!res.ok) {
+        console.error("Failed to load sidebar", res.status);
+        return;
+    }
+
+    const html = await res.text();
+    container.innerHTML = html;
+
+    initSidebarActiveState();
+}
+
+function initSidebarActiveState() {
+    const activePage = document.body.dataset.page;
+    if (!activePage) return;
+
+    const link = document.querySelector(`[data-page="${activePage}"]`);
+    if (!link) return;
+
+    link.classList.add("active");
+
+    const collapseEl = link.closest(".accordion-collapse");
+    if (!collapseEl) return;
+
+    collapseEl.classList.add("show");
+    const buttonEl = collapseEl.previousElementSibling?.querySelector(".accordion-button");
+    if (buttonEl) buttonEl.classList.remove("collapsed");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadSidebar();
+});
+
+async function fetchBrands() {
+    try {
+        const response = await apiGet("/master-data/brands");
+        if (response?.success === true) {
+            return response.data ?? {};
+        }
+        toastpopup("Failed to fetch brands: " + (response?.error ?? "Unknown error"), "danger");
+        return {};
+    } catch (error) {
+        toastpopup("Error fetching brands: " + String(error), "danger");
+        return {};
+    }
+}
+
+async function fetchCategories() {
+    try {
+        const response = await apiGet("/master-data/categories");
+        if (response?.success === true) {
+            return response.data ?? {};
+        }
+        toastpopup("Failed to fetch categories: " + (response?.error ?? "Unknown error"), "danger");
+        return {};
+    } catch (error) {
+        toastpopup("Error fetching categories: " + String(error), "danger");
+        return {};
+    }
+}
+
+async function fetchSuppliers() {
+    try {
+        const response = await apiGet("/master-data/suppliers");
+        if (response?.success === true) {
+            return response.data ?? {};
+        }
+        toastpopup("Failed to fetch suppliers: " + (response?.error ?? "Unknown error"), "danger");
+        return {};
+    } catch (error) {
+        toastpopup("Error fetching suppliers: " + String(error), "danger");
+        return {};
+    }
+}
+
+function selectValueToNullableInt(selectId) {
+    const el = document.getElementById(selectId);
+    if (!el) return null;
+
+    const v = (el.value ?? "").trim();
+    if (v === "" || v === "0") return null;
+
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
 }

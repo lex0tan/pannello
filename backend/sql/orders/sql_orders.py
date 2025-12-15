@@ -321,7 +321,3 @@ async def setOrderStatus(orderId: int, newStatus: int):
         console.print(f"❌ setOrderStatus connection error: {e}")
         return {"success": False, "error": str(e)}
 
-
-
-
-

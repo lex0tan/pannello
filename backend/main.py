@@ -1,3 +1,7 @@
+import sys
+
+sys.dont_write_bytecode = True
+
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -8,6 +12,9 @@ from pathlib import Path
 from helpers.config import POSTGRES_DSN, init_pool, close_pool
 from api import static as staticRouter
 from helpers import orders as ordersRouter
+from helpers import products as productsRouter
+from helpers import master_data as masterDataRouter
+from helpers import returns as returnsRouter
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -46,8 +53,19 @@ async def root():
 
 @app.get("/ordini++.html", response_class=FileResponse)
 async def orders_page():
-    # pagina ordini
     return FileResponse(str(FRONTEND_DIR / "html" / "ordini++.html"))
+
+@app.get("/sku-manager.html", response_class=FileResponse)
+async def sku_manager_page():
+    return FileResponse(str(FRONTEND_DIR / "html" / "sku-manager.html"))
+
+@app.get("/returns-warehouse.html", response_class=FileResponse)
+async def return_warehouse_page():
+    return FileResponse(str(FRONTEND_DIR / "html" / "returns-warehouse.html"))
+
+@app.get("/returns.html", response_class=FileResponse)
+async def returns_page():
+    return FileResponse(str(FRONTEND_DIR / "html" / "returns.html"))
 
 @app.get("/.well-known/appspecific/com.chrome.devtools.json")
 async def ignore():
@@ -56,6 +74,7 @@ async def ignore():
 
 app.include_router(ordersRouter.router)
 app.include_router(staticRouter.router)
-
-
+app.include_router(productsRouter.router)
+app.include_router(masterDataRouter.router)
+app.include_router(returnsRouter.router)
 

@@ -30,3 +30,7 @@ async def get_logo():
 @router.get("/sidebar.html")
 async def get_sidebar():
     return FileResponse("api/src/sidebar.html", media_type="text/html")
+
+@router.get("/newProductModal.html")
+async def get_new_product_modal():
+    return FileResponse("api/src/newProductModal.html", media_type="text/html")

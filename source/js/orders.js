@@ -2,7 +2,7 @@ let positionsCache = null;
 let ordersById = {};
 let paymentMethods = null;
 let tags = null;
-
+let orderDetailsCache = {};
 let currentPage         = 0;
 let currentStatusFilter = null;          // 6,7,2 o null per tutti
 let currentSortBy       = "creationDate";
@@ -646,6 +646,7 @@ function toggleDetails() {
         const row = e.target.closest("tr.order-row");
         if (!row) return;
 
+        // Non reagire ai click dentro il dropdown degli status
         if (e.target.closest(".dropdown")) return;
 
         const orderId = row.dataset.orderId;
@@ -668,38 +669,63 @@ function toggleDetails() {
 
         const wasOpen = wrapper.classList.contains("open");
 
+        // Chiudo tutti gli altri dettagli aperti
         document
             .querySelectorAll(".order-details .detail-wrapper.open")
             .forEach(w => w.classList.remove("open"));
 
+        // Se era già aperto, lo sto chiudendo: nessuna fetch
         if (wasOpen) {
             return;
         }
 
+        // Apro il wrapper per questo ordine
         wrapper.classList.add("open");
 
         try {
-            await loadPositionsIfNeeded();
+            let products;
+            let notes;
 
-            const [productsRes, notesRes] = await Promise.all([
-                apiGet(`/orders/${orderId}/products`),
-                apiGet(`/orders/${orderId}/notes`)
-            ]);
+            const cached = orderDetailsCache[orderId];
 
-            if (!productsRes.success) {
-                console.error("Errore nel caricamento prodotti:", productsRes.error);
-                await toastpopup("Errore nel caricamento prodotti: " + productsRes.error, "danger");
-                return;
+            if (cached) {
+                // Uso i dati già caricati una volta
+                products = cached.products;
+                notes    = cached.notes;
+            } else {
+                // Prima volta per questo ordine → faccio le fetch
+                await loadPositionsIfNeeded();
+
+                const [productsRes, notesRes] = await Promise.all([
+                    apiGet(`/orders/${orderId}/products`),
+                    apiGet(`/orders/${orderId}/notes`)
+                ]);
+
+                if (!productsRes.success) {
+                    console.error("Errore nel caricamento prodotti:", productsRes.error);
+                    await toastpopup("Errore nel caricamento prodotti: " + productsRes.error, "danger");
+                    return;
+                }
+                if (!notesRes.success) {
+                    console.error("Errore nel caricamento note:", notesRes.error);
+                    await toastpopup("Errore nel caricamento note: " + notesRes.error, "danger");
+                    return;
+                }
+
+                products = productsRes.data || [];
+                notes    = notesRes.data || [];
+
+                // Metto in cache per futuri open dello stesso ordine
+                orderDetailsCache[orderId] = {
+                    products,
+                    notes,
+                };
             }
-            if (!notesRes.success) {
-                console.error("Errore nel caricamento note:", notesRes.error);
-                await toastpopup("Errore nel caricamento note: " + notesRes.error, "danger");
-                return;
-            }
 
+            // ==== RENDER PRODOTTI ====
             const tbody = wrapper.querySelector(`#products-${orderId}`);
             if (tbody) {
-                tbody.innerHTML = productsRes.data.map(p => `
+                tbody.innerHTML = products.map(p => `
                     <tr>
                         <td>${escapeHtml(p.productName)}</td>
                         <td>${escapeHtml(p.sku)}</td>
@@ -711,13 +737,14 @@ function toggleDetails() {
                 `).join("");
             }
 
+            // ==== RENDER TOTALI ====
             const totalElem    = wrapper.querySelector(`#order-total-${orderId}`);
             const shippingElem = wrapper.querySelector(`#order-shipping-${orderId}`);
             const discountElem = wrapper.querySelector(`#order-discount-${orderId}`);
             const paidElem     = wrapper.querySelector(`#order-paid-${orderId}`);
 
             const orderData  = ordersById[orderId];
-            const orderTotal = productsRes.data.reduce(
+            const orderTotal = products.reduce(
                 (sum, p) => sum + (Number(p.price) * Number(p.quantity)),
                 0
             );
@@ -730,9 +757,10 @@ function toggleDetails() {
             if (discountElem) discountElem.textContent = `${discount.toFixed(2)}€`;
             if (paidElem)     paidElem.textContent     = `${totalPaid.toFixed(2)}€`;
 
+            // ==== RENDER NOTE ====
             const noteList = wrapper.querySelector(".note-timeline");
             if (noteList) {
-                noteList.innerHTML = notesRes.data.map(note => `
+                noteList.innerHTML = notes.map(note => `
                     <li class="list-group-item border-0 px-0">
                         <div class="d-flex align-items-center justify-content-between mb-1">
                             <div class="d-flex align-items-center">
@@ -750,7 +778,6 @@ function toggleDetails() {
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
-                                        <button class="dropdown-item note-delete-btn" type="button" data-noteid="${note.id}">
                                         <button class="dropdown-item note-delete-btn" type="button" data-noteid="${note.id}">
                                             Elimina
                                         </button>

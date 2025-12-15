@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resi - Return Manager</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="static/css/offcanvas.css">
+    <link rel="stylesheet" href="static/css/main.css">
+
+    <style>
+        #returnsPagination .page-link {
+            padding-inline: 0.9rem;
+            padding-block: 0.35rem;
+        }
+
+        #returnsTable th:first-child,
+        #returnsTable td:first-child {
+            padding-left: 1rem !important;
+        }
+
+        .tracking-mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.875rem;
+        }
+
+        .table-actions .btn {
+            padding: 0.25rem 0.5rem;
+        }
+    </style>
+
+    <script defer src="static/js/main.js"></script>
+    <script defer src="static/js/returns-manager.js"></script>
+</head>
+
+<body data-page="returns-manager">
+
+    <!-- sidebar -->
+    <div id="sidebar-container"></div>
+    <!-- sidebar -->
+
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="btn" data-bs-toggle="offcanvas" href="#offcanvas" role="button" aria-controls="offcanvas">
+                X
+            </a>
+            <a href="/" style="text-decoration: none; color: black">
+                <img src="config/logo.png" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
+                adm panel
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0"></ul>
+
+                <div class="user-menu discord-user-menu">
+                    <div class="user-tab" id="userTab">
+                        <span class="username">User123</span>
+                        <span class="arrow">▾</span>
+                    </div>
+
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-item">Impostazioni</div>
+                        <div class="dropdown-item">Profilo</div>
+                        <div class="dropdown-item">Esci</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-3">
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h1 class="h3 mb-1">Return Manager</h1>
+                <p class="text-muted mb-0">Ordini in spedizione di reso</p>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary" id="returnsRefreshBtn" data-bs-toggle="tooltip"
+                    data-bs-placement="top" title="Aggiorna lista resi">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Aggiorna
+                </button>
+            </div>
+        </div>
+
+        <!-- Cards riepilogo -->
+        <div class="row mb-3 g-2">
+            <div class="col-12 col-sm-4">
+                <div class="card h-100">
+                    <div class="card-body py-2 d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">Ordini in spedizione di reso</div>
+                            <div class="fw-bold h5 mb-0 placeholder-glow">
+                                <span class="placeholder col-5" id="returns-in-transit-count"></span>
+                            </div>
+                        </div>
+                        <i class="bi bi-truck fs-3 text-secondary" data-bs-toggle="tooltip" data-bs-placement="top"
+                            title="Resi con tracking attivo e non ancora consegnati"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-4">
+                <div class="card h-100">
+                    <div class="card-body py-2 d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">Consegnati da gestire</div>
+                            <div class="fw-bold h5 mb-0 placeholder-glow">
+                                <span class="placeholder col-5" id="returns-delivered-pending-count"></span>
+                            </div>
+                        </div>
+                        <i class="bi bi-inbox fs-3 text-warning" data-bs-toggle="tooltip" data-bs-placement="top"
+                            title="Resi consegnati dal corriere, in attesa di presa in carico"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-4">
+                <div class="card h-100">
+                    <div class="card-body py-2 d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">Criticità tracking</div>
+                            <div class="fw-bold h5 mb-0 placeholder-glow">
+                                <span class="placeholder col-5" id="returns-issues-count"></span>
+                            </div>
+                        </div>
+                        <i class="bi bi-exclamation-octagon fs-3 text-danger" data-bs-toggle="tooltip"
+                            data-bs-placement="top" title="Resi con anomalie: fermo, errore, consegna fallita, ecc."></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra filtri -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <form id="returnsFilterForm" class="row g-2 align-items-end">
+
+                    <!-- Search -->
+                    <div class="col-12 col-md-4">
+                        <label for="returnsSearchInput" class="form-label small mb-1">Cerca (ordine, tracking,
+                            cliente)</label>
+                        <input type="text" class="form-control" id="returnsSearchInput" placeholder="">
+                    </div>
+
+                    <!-- Stato spedizione -->
+                    <div class="col-6 col-md-2">
+                        <label for="returnsShipStatusFilter" class="form-label small mb-1">Stato spedizione</label>
+                        <select class="form-select" id="returnsShipStatusFilter">
+                            <option value="">Tutti</option>
+                            <option value="in_transit">In transito</option>
+                            <option value="delivered">Consegnato</option>
+                            <option value="exception">Eccezione</option>
+                            <option value="unknown">Sconosciuto</option>
+                        </select>
+                    </div>
+
+                    <!-- Stato reso (workflow interno) -->
+                    <div class="col-6 col-md-2">
+                        <label for="returnsWorkflowFilter" class="form-label small mb-1">Stato gestione</label>
+                        <select class="form-select" id="returnsWorkflowFilter">
+                            <option value="">Tutti</option>
+                            <option value="pending">Da gestire</option>
+                            <option value="received">Arrivato</option>
+                            <option value="inspecting">In verifica</option>
+                            <option value="accepted">Accettato</option>
+                            <option value="rejected">Rifiutato</option>
+                            <option value="closed">Chiuso</option>
+                        </select>
+                    </div>
+
+                    <!-- Corriere -->
+                    <div class="col-6 col-md-2">
+                        <label for="returnsCarrierFilter" class="form-label small mb-1">Corriere</label>
+                        <select class="form-select" id="returnsCarrierFilter">
+                            <option value="">Tutti</option>
+                            <!-- Popola da JS -->
+                        </select>
+                    </div>
+
+                    <!-- Piattaforma -->
+                    <div class="col-6 col-md-2">
+                        <label for="returnsPlatformFilter" class="form-label small mb-1">Piattaforma</label>
+                        <select class="form-select" id="returnsPlatformFilter">
+                            <option value="">Tutte</option>
+                            <!-- Popola da JS -->
+                        </select>
+                    </div>
+
+                    <!-- Toggle extra -->
+                    <div class="col-12 col-md-6 mt-2">
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="onlyDeliveredPending">
+                                <label class="form-check-label small" for="onlyDeliveredPending">
+                                    Solo consegnati da gestire
+                                </label>
+                            </div>
+
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="onlyIssues">
+                                <label class="form-check-label small" for="onlyIssues">
+                                    Solo criticità tracking
+                                </label>
+                            </div>
+
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="onlyWithoutRma">
+                                <label class="form-check-label small" for="onlyWithoutRma">
+                                    Solo senza RMA
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottoni azione -->
+                    <div class="col-12 col-md-6 mt-2 text-md-end">
+                        <button type="button" class="btn btn-outline-secondary me-2" id="returnsFiltersReset">
+                            Reset
+                        </button>
+                        <button type="button" class="btn btn-primary" id="returnsFiltersApply">
+                            Applica filtri
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabella resi -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-semibold">Resi</span>
+                    <small class="text-muted" id="returns-shown"></small>
+                </div>
+
+                <small class="text-muted">
+                    <div class="d-flex align-items-center gap-1">
+                        <span>Ultimi</span>
+
+                        <div class="dropdown">
+                            <button type="button" class="btn btn-link p-0 m-0 text-decoration-none text-body"
+                                id="returnsPageSizeBtn" data-bs-toggle="dropdown" aria-expanded="false"
+                                style="border:0; box-shadow:none;">
+                                <span id="returnsPageSizeLabel" data-bs-toggle="tooltip" data-bs-placement="top"
+                                    title="Seleziona il numero di resi da visualizzare per pagina">50</span>
+                            </button>
+
+                            <span>resi (ordinati per data creazione)</span>
+
+                            <ul class="dropdown-menu shadow-sm" aria-labelledby="returnsPageSizeBtn">
+                                <li><button class="dropdown-item returns-page-size" type="button"
+                                        data-size="50">50</button></li>
+                                <li><button class="dropdown-item returns-page-size" type="button"
+                                        data-size="100">100</button></li>
+                                <li><button class="dropdown-item returns-page-size" type="button"
+                                        data-size="150">150</button></li>
+                                <li><button class="dropdown-item returns-page-size" type="button"
+                                        data-size="200">200</button></li>
+                            </ul>
+                        </div>
+                    </div>
+                </small>
+            </div>
+
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="returnsTable" data-page-size="50">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" class="ps-3">ID</th>
+                                <th scope="col">Ordine</th>
+                                <th scope="col">Cliente</th>
+                                <th scope="col" class="text-center">Piattaforma</th>
+                                <th scope="col" class="text-center">Corriere</th>
+                                <th scope="col">Tracking</th>
+                                <th scope="col" class="text-center">Spedizione</th>
+                                <th scope="col" class="text-center">Gestione</th>
+                                <th scope="col" class="text-end">Ultimo evento</th>
+                                <th scope="col" class="text-end">ETA</th>
+                                <th scope="col" class="text-end pe-3">Azioni</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="returnsTableBody">
+                            <!-- Popola da JS -->
+                            <tr>
+                                <td colspan="11" class="py-5">
+                                    <div class="d-flex flex-column align-items-center text-center gap-2">
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center"
+                                            style="width: 56px; height: 56px;">
+                                            <i class="bi bi-truck fs-3 text-secondary"></i>
+                                        </div>
+
+                                        <div class="fw-semibold">Nessun reso trovato</div>
+                                        <div class="text-muted small" style="max-width: 520px;">
+                                            Prova a modificare i filtri o crea un nuovo reso.
+                                        </div>
+
+                                        <div class="d-flex flex-wrap justify-content-center gap-2 mt-2">
+                                            <button type="button" class="btn btn-outline-secondary"
+                                                id="returnsEmptyResetBtn">
+                                                Reset filtri
+                                            </button>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="card-footer">
+                <nav aria-label="Navigazione resi">
+                    <ul class="pagination justify-content-center mb-0" id="returnsPagination">
+                        <!-- Popolata da JS -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Container per modal (caricato via fetch come fai per prodotti) -->
+    <div id="modal-container"></div>
+
+</body>
+
+</html>

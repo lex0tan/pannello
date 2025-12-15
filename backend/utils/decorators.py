@@ -20,7 +20,7 @@ def standard_error_handler(context: str):
                 console.print(f"Errore di validazione durante {context}",style="bold red")
                 for err in ve.errors():
                     console.print(f"Errore nella validazione di '{err['loc'][0]}', "f"valore ricevuto: {err['input']}\n {err['msg'].strip()}",style="red")
-
+                
                 return JSONResponse(status_code=422,content={"success": False,"data": None,"error": f"Errore nella struttura dei dati ({context})",},)
 
             except Exception:

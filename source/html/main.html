@@ -18,64 +18,9 @@
     </style>
 </head>
 
-<body>
+<body data-page="">
     <!-- sidebar -->
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvas" aria-labelledby="offcanvasLabel">
-        <div class="offcanvas-header">
-            <div class="text">Pannello v0.0.1</div>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div class="offcanvas-body">
-            <div class="accordion discord-accordion" id="menuAccordion">
-
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#item1">
-                            Ordini
-                        </button>
-                    </h2>
-                    <div id="item1" class="accordion-collapse collapse">
-                        <div class="accordion-body">
-                            <a href="ordini++.html" style="text-decoration: None; color: black">Ordini++</a>
-                            <a href="buoniSconto.html" style="text-decoration: None; color: black">Buoni Sconto</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#item2">
-                            Catalogo
-                        </button>
-                    </h2>
-                    <div id="item2" class="accordion-collapse collapse">
-                        <div class="accordion-body">
-                            <a href="" style="text-decoration: None; color: black">Sku manager</a>
-                            <a href="" style="text-decoration: None; color: black">prodotti</a>
-                            <a href="" style="text-decoration: None; color: black">Promozioni</a>
-                            <a href="" style="text-decoration: None; color: black">product editor</a>
-                        </div>
-                    </div>
-                </div>
-
-
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#item3">
-                            Clienti
-                        </button>
-                    </h2>
-                    <div id="item3" class="accordion-collapse collapse">
-                        <div class="accordion-body">
-                            <a href="" style="text-decoration: None; color: black">Clienti</a>
-                            <a href="" style="text-decoration: None; color: black">Mailing list</a>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
+    <div id="sidebar-container"></div>
     <!-- sidebar -->
 
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
@@ -83,8 +28,9 @@
             <a class="btn" data-bs-toggle="offcanvas" href="#offcanvas" role="button" aria-controls="offcanvas">
                 X
             </a>
-            <img src="static/src/logo.png" alt="Logo" width="30" height="24"
-                class="d-inline-block align-text-top"> adm panel
+            <a href="/" style="text-decoration: none; color: black">
+            <img src="config/logo.png" alt="Logo" width="30" height="24"
+                class="d-inline-block align-text-top"> adm panel </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
                 aria-label="Toggle navigation">
